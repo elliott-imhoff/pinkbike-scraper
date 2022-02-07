@@ -71,3 +71,46 @@ def delete_items():
     """Clear the db."""
     db = pinkbike.db.connect()
     db.items.delete_many({})
+
+
+@cli.command()
+@click.option("--output", type=click.Choice(["csv", "mongo"]), default="csv")
+def classify_fork_makes(output):
+    """Classify fork make."""
+    db = pinkbike.db.connect()
+    fork_listings = db.items.find(
+        {
+            "Category": "Single Crown Forks",
+            "Front Travel": {"$ne": "0 mm (Rigid)"},
+            "Make": None,
+        }
+    )
+    fork_dicts = []
+    for listing in fork_listings:
+        make = None
+        for fork in pinkbike.components.forks:
+            for keyword in pinkbike.components.forks[fork]:
+                if keyword.lower() in listing["Item"].lower():
+                    if make is not None:
+                        raise Exception(
+                            f"Multiple makes found for fork: {listing['_id']}"
+                        )
+                    make = fork
+                    break
+        if make and output == "mongo":
+            db.items.update_one({"_id": listing["_id"]}, {"$set": {"Make": make}})
+        elif output == "csv":
+            fork_dicts.append(
+                {
+                    "Item": listing["Item"],
+                    "Travel": listing["Front Travel"]
+                    if "Front Travel" in listing
+                    else None,
+                    "ID": listing["_id"],
+                    "Make": make,
+                }
+            )
+
+    if output == "csv":
+        df = pandas.DataFrame(fork_dicts)
+        df.to_csv(Path(__file__).parents[1].resolve() / "forks.csv", index=False)

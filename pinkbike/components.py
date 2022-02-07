@@ -1,0 +1,37 @@
+"""Keywords used to classify component make and models."""
+
+
+forks = {
+    "Fox": ["Fox", "Factory", "Performance Elite", "Rhythm", "Float"],
+    "RockShox": [
+        "RockShox",
+        "RockShock",
+        "Rock",
+        "ZEB",
+        "Pike",
+        "Lyrik",
+        "Yari",
+        "SID",
+        "Ultimate",
+        "Select",
+        "Recon",
+        "Reba",
+        "Revelation",
+    ],
+    "Cane Creek": ["Cane Creek", "Helm", "MKII"],
+    "DVO": ["DVO"],
+    "Ohlins": ["Ohlins"],
+    "Marzocchi": ["Marzocchi", "Marzzochi", "Bomber", "Z1", "Z2"],
+    "Manitou": ["Manitou", "Maintou"],
+    "Magura": ["Magura"],
+    "Trust": ["Trust", "Message", "Shout"],
+    "Suntour": ["Suntour"],
+    "X-Fusion": ["Fusion"],
+    "Mezzer": ["Mezzer"],
+    "White Brothers": ["White Brothers"],
+    "Cannondale": ["Cannondale"],
+    "Giant": ["Giant", "Crest"],
+    "MRP": ["Ribbon"],
+    "Spinner": ["Odesa", "Spinner"],
+    "Bos Deville": ["Deville"],
+}

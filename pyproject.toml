@@ -12,6 +12,7 @@ requests = "*"
 beautifulsoup4 = "*"
 pandas = "*"
 tqdm = "*"
+forex-python = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
