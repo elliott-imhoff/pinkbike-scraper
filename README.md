@@ -1,13 +1,30 @@
-# Repo Setup Guide
+# pinkbike-scraper
 
-Follow these instructions to set up your new Python repository
+``pinkbike``: A web scraper for the pinkbike buy/sell page
 
-1) Click ``Use this template`` above and create the new repository.
+## Installation 
+   
+#### Linux/Mac
 
-2) Clone your new repo locally.
+1) Install ``pyenv``
 
-3) Within your new repo, run `python prefill.py` and follow the instructions given at the command prompt.
-       
-4) Follow the installation instructions in your repo's new README to finish setting up package.
+    1) Make sure you install the [build dependencies](https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites) 
+for your system.
 
-5) Push all changes to GitHub.
+    2) Run
+
+            curl https://pyenv.run | bash
+
+    3) Restart your shell so the path changes take effect.
+
+            exec $SHELL
+            
+2) Install [poetry](https://python-poetry.org/docs/#installation)
+3) Install package
+
+        pyenv install $(cat .python-version)
+        poetry install
+        
+## Usage
+
+Within the correct poetry/conda shell, run ``pinkbike --help`` to view available CLI commands.
