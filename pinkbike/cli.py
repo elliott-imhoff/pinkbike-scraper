@@ -2,15 +2,15 @@
 
 import logging
 import re
-from itertools import count
 from datetime import datetime
+from itertools import count
 from pathlib import Path
 
 import click
-import requests
 import pandas
-from forex_python.converter import CurrencyRates
+import requests
 from bs4 import BeautifulSoup
+from forex_python.converter import CurrencyRates
 from tqdm import tqdm
 
 import pinkbike
@@ -36,6 +36,7 @@ def version():
 
 @cli.command()
 def scrape():
+    """Scrape Pinkbike's buy/sell posts."""
     start_id = 2917101
     base_url = "http://www.pinkbike.com/buysell/"
     c = CurrencyRates()
@@ -73,23 +74,30 @@ def scrape():
                         item[key] = detail_lines[j] == "Sold"
                     elif key == "Condition":
                         extras = [
-                            s.strip() for k in range(1, len(detail_line)) for s in detail_line[k].split('  ') if s
+                            s.strip()
+                            for k in range(1, len(detail_line))
+                            for s in detail_line[k].split("  ")
+                            if s
                         ]
                         item[key] = extras[0]
                         for k in range(1, len(extras), 2):
-                            item[extras[k]] = extras[k+1]
+                            item[extras[k]] = extras[k + 1]
                     else:
                         item[key] = detail_line[1].strip()
                         if "Date" in key:
-                            item[key] = datetime.strptime(item[key].split(" ")[0], "%b-%d-%Y")
+                            item[key] = datetime.strptime(
+                                item[key].split(" ")[0], "%b-%d-%Y"
+                            )
                         elif "Count" in key:
                             item[key] = int(item[key].replace(",", ""))
                 j += 1
 
-        price = soup.find("div", class_="buysell-container buysell-price").text.strip()[1:]
+        price = soup.find("div", class_="buysell-container buysell-price").text.strip()[
+            1:
+        ]
         price, unit = price.split(" ")
         price = int(price.replace(",", ""))
-        item["Price"] = c.convert(unit, 'USD', price, item["Last Repost Date"])
+        item["Price"] = c.convert(unit, "USD", price, item["Last Repost Date"])
 
         items.append(item)
 
