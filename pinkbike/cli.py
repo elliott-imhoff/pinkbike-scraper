@@ -1,16 +1,11 @@
 """CLI entrypoints through ``click`` bindings."""
 
 import logging
-import re
-from datetime import datetime
 from itertools import count
 from pathlib import Path
 
 import click
 import pandas
-import requests
-from bs4 import BeautifulSoup
-from forex_python.converter import CurrencyRates
 from tqdm import tqdm
 
 import pinkbike
@@ -35,74 +30,44 @@ def version():
 
 
 @cli.command()
-def scrape():
+@click.option("--num_items", type=int)
+@click.option("--output", type=click.Choice(["csv", "mongo"]))
+@click.option("--start_id", type=int, default=2917101)
+def scrape(num_items, output, start_id):
     """Scrape Pinkbike's buy/sell posts."""
-    start_id = 2917101
-    base_url = "http://www.pinkbike.com/buysell/"
-    c = CurrencyRates()
-    year_pattern = re.compile("^2[0-9]{3}$")
+    db = None
+    if output == "mongo":
+        db = pinkbike.db.connect()
+        max_id = db.items.find_one(sort=[("_id", -1)])
+        if max_id is not None:
+            start_id = max_id["_id"] + 1
+
     items = []
+    num_misses = 0
     for i in tqdm(count()):
-        item_id = start_id + i
-        url = base_url + str(item_id)
-        page = requests.get(url)
-        if not page.ok:
-            continue
-        soup = BeautifulSoup(page.content, "html.parser")
+        item = pinkbike.scraper.scrape(start_id + i)
+        if item:
+            num_misses = 0
+            if db is not None:
+                db.items.insert_one(item)
+            else:
+                items.append(item)
+        else:
+            num_misses += 1
 
-        item = {"ID": item_id}
-        title = soup.find("h1", class_="buysell-title").text.strip()
-        year = title.split(" ", 1)[0]
-        if year_pattern.match(year):
-            item["Year"] = year
-            title = title.split(" ", 1)[1]
-        item["Item"] = title
-
-        details = soup.find_all("div", class_="buysell-details-column")
-        for d in details:
-            detail_lines = []
-            for line in d.text.splitlines():
-                detail_lines.append(line.strip().split(":"))
-
-            j = 0
-            while j < len(detail_lines):
-                detail_line = detail_lines[j]
-                key = detail_line[0]
-                if key:
-                    if key == "Still For Sale":
-                        j += 1
-                        item[key] = detail_lines[j] == "Sold"
-                    elif key == "Condition":
-                        extras = [
-                            s.strip()
-                            for k in range(1, len(detail_line))
-                            for s in detail_line[k].split("  ")
-                            if s
-                        ]
-                        item[key] = extras[0]
-                        for k in range(1, len(extras), 2):
-                            item[extras[k]] = extras[k + 1]
-                    else:
-                        item[key] = detail_line[1].strip()
-                        if "Date" in key:
-                            item[key] = datetime.strptime(
-                                item[key].split(" ")[0], "%b-%d-%Y"
-                            )
-                        elif "Count" in key:
-                            item[key] = int(item[key].replace(",", ""))
-                j += 1
-
-        price = soup.find("div", class_="buysell-container buysell-price").text.strip()[
-            1:
-        ]
-        price, unit = price.split(" ")
-        price = int(price.replace(",", ""))
-        item["Price"] = c.convert(unit, "USD", price, item["Last Repost Date"])
-
-        items.append(item)
-
-        if i > 1000:
+        if num_items:
+            if i >= num_items:
+                break
+        elif num_misses > 20:
             break
 
-    df = pandas.DataFrame(items)
-    df.to_csv(Path(__file__).parents[1].resolve() / "items.csv", index=False)
+    if output == "csv":
+        df = pandas.DataFrame(items)
+        df.to_csv(Path(__file__).parents[1].resolve() / "items.csv", index=False)
+
+
+@cli.command()
+def delete_items():
+    """Clear the db."""
+    db = pinkbike.db.connect()
+    db.items.delete_many({})

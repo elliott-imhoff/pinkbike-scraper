@@ -7,11 +7,10 @@ authors = []
 [tool.poetry.dependencies]
 python = "^3.7"
 click = "*"
-sqlalchemy = "*"
+pymongo = {version = "*", extras = ["srv"]}
 requests = "*"
 beautifulsoup4 = "*"
 pandas = "*"
-forex-python = "*"
 tqdm = "*"
 
 [tool.poetry.dev-dependencies]
@@ -25,7 +24,7 @@ pinkbike = "pinkbike.cli:cli"
 line_length = 88
 multi_line_output = 3
 include_trailing_comma = true
-known_third_party = ["bs4", "click", "forex_python", "pandas", "requests", "tqdm"]
+known_third_party = ["bs4", "click", "pandas", "pymongo", "requests", "tqdm"]
 
 [build-system]
 requires = ["poetry-core"]
