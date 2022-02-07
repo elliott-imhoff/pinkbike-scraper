@@ -6,7 +6,7 @@
    
 #### Linux/Mac
 
-1) Install ``pyenv``
+1) Install [pyenv](https://github.com/pyenv/pyenv)
 
     1) Make sure you install the [build dependencies](https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites) 
 for your system.
