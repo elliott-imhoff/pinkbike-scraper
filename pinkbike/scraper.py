@@ -3,8 +3,9 @@
 import re
 from datetime import datetime
 
-import requests
 from bs4 import BeautifulSoup
+
+from pinkbike.utils import retry_request
 
 # from forex_python.converter import CurrencyRates
 
@@ -16,7 +17,7 @@ YEAR_PATTERN = re.compile("^2[0-9]{3}$")
 def scrape(item_id):
     """Scrape relevant information from pinkbike for the given item id."""
     url = BASE_URL + str(item_id)
-    page = requests.get(url)
+    page = retry_request(url)
     if not page.ok:
         return None
 
@@ -27,7 +28,10 @@ def scrape(item_id):
     year = title.split(" ", 1)[0]
     if YEAR_PATTERN.match(year):
         item["Year"] = year
-        title = title.split(" ", 1)[1]
+        try:
+            title = title.split(" ", 1)[1]
+        except IndexError:
+            title = None
     item["Item"] = title
 
     details = soup.find_all("div", class_="buysell-details-column")
